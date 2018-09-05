@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzx.dao.DeptDao">
+
+	<!--添加部门 -->
+	<insert id="addDept" parameterType="Dept">
+		insert into
+		dept_inf(name,remark,create_date) values(#{name},#{remark},now());
+	</insert>
+	<!-- 删除部门  -->
+	<delete id="deleteDept" parameterType="int">
+		delete from dept_inf where id=#{id};
+	</delete>
+	
+	<!-- 更改部门  -->
+	<update id="updateDept" parameterType="Dept">
+		update dept_inf 
+		<set>
+			<if test="name!=null and name!=''">
+				name=#{name},
+			</if>
+			<if test="remark!=null and remark!=''">
+				remark=#{remark},
+			</if>
+		</set>
+		<where>
+			id=#{id};
+		</where>
+	</update>
+	<!--根据id查找部门  -->
+	<select id="findDeptById" parameterType="int" resultType="Dept">
+		select * from dept_inf where id=#{id};
+	</select>
+	<!-- 查找所有部门  -->
+	<select id="selectAllDept" parameterType="Dept" resultMap="selectDept_map" resultType="Dept">
+		select d.id,d.name,d.remark,d.create_date,c.* from dept_inf d left join
+		(select Dept_id,count(id) as dept_sum from employee_inf group by Dept_id) c on c.dept_id=d.id;
+	</select>
+	<!-- 查找部门  -->
+	<select id="selectDept" parameterType="Dept" resultMap="selectDept_map" resultType="Dept">
+		select d.id,d.name,d.remark,d.create_date,c.* from dept_inf d left join
+		(select Dept_id,count(id) as dept_sum from employee_inf group by Dept_id) c on c.dept_id=d.id
+	
+			<if test="name!=null and name!=''">
+				where d.name like '%${name}%'
+			</if>
+
+		<!-- 区域查询 -->
+		<if test="startRowNum>=0">
+			limit #{startRowNum},#{pageSize};
+		</if>
+	</select>
+	<resultMap type="Dept" id="selectDept_map">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+		<!--一对多的实现 collection association -->
+		<result property="dept_sum" column="dept_sum"/>
+	</resultMap>
+	<!-- 查找部门 总记录 -->
+	<select id="selectDeptCount" parameterType="Dept" resultType="int">
+	select count(*) from dept_inf d left join
+		(select Dept_id,count(id) as dept_sum from employee_inf group by Dept_id) c on c.dept_id=d.id
+		<if test="name!=null and name!=''">
+				where d.name like '%${name}%'
+		</if>
+	</select>
+	<!-- 判断部门 名称是否重复 -->
+	<select id="findDeptName" parameterType="Dept" resultType="Dept">
+		select * from dept_inf where name=#{name};
+	</select>
+</mapper>

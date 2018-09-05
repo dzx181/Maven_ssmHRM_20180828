@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzx.dao.DocDao">
+	<!--查找所有文件 -->
+	<select id="selectAllFile" parameterType="Doc" resultType="Doc" resultMap="selectFile_map">
+		select d.*,u.id as
+		'userinf_Id',u.loginname,u.PASSWORD,u.STATUS,u.createdate,u.username
+		from doc_inf d,user_inf u where u.id=d.user_Id
+	</select>
+	<!--文件上传 -->
+	<insert id="fileUpload" parameterType="Doc">
+		insert into
+		doc_inf(TITLE,filename,REMARK,CREATE_DATE,USER_ID)
+		values(#{title},#{filename},#{remark},now(),#{user.id});
+	</insert>
+	<!-- 查找文件 -->
+	<select id="selectFile" parameterType="Doc" resultMap="selectFile_map"
+		resultType="Doc">
+		select d.*,u.id as
+		'userinf_Id',u.loginname,u.PASSWORD,u.STATUS,u.createdate,u.username
+		from doc_inf d,user_inf u where u.id=d.user_Id
+		<choose>
+			<when test="title!=null and title!=''">
+				and title like '%${title}%'
+			</when>
+		</choose>
+		<!-- 区域查询 -->
+		<if test="startRowNum>=0">
+			limit #{startRowNum},#{pageSize};
+		</if>
+	</select>
+	<resultMap type="Doc" id="selectFile_map">
+		<id property="id" column="id" />
+		<result property="filename" column="filename" />
+		<result property="title" column="title" />
+		<result property="remark" column="remark" />
+		<result property="create_date" column="create_date" />
+		<!-- 属性user 1 对1 association：实现1对1的关联对象映射 property：pojo的属性名 column：对应的字段名 
+			javaType：pojo属性数据类型 select:传入根据外键ID执行查询sql -->
+		<association property="user" javaType="User" column="user_Id">
+			<id property="id" column="userinf_Id" />
+			<result property="username" column="username" />
+			<result property="loginname" column="loginname" />
+			<result property="password" column="password" />
+			<result property="status" column="status" />
+			<result property="createDate" column="createDate" />
+		</association>
+	</resultMap>
+	<!-- 查找总记录 -->
+	<select id="selectFileCount" parameterType="Doc" resultType="int">
+		select count(*) from doc_inf d,user_inf u where u.id=d.user_Id
+		<choose>
+			<when test="title!=null and title!=''">
+				and d.title like '%${title}%';
+			</when>
+		</choose>
+	</select>
+	<delete id="deleteFile" parameterType="int">
+		delete from doc_inf where
+		id=#{id};
+	</delete>
+</mapper>

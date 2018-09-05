@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzx.dao.JobDao">
+
+	<!--添加职位 -->
+	<insert id="addJob" parameterType="Job">
+		insert into
+		job_inf(name,remark,create_date) values(#{name},#{remark},now());
+	</insert>
+	<!-- 删除职位 -->
+	<delete id="deleteJob" parameterType="int">
+		delete from job_inf where id=#{id};
+	</delete>
+	
+	<!-- 更改职位 -->
+	<update id="updateJob" parameterType="Job">
+		update job_inf 
+		<set>
+			<if test="name!=null and name!=''">
+				name=#{name},
+			</if>
+			<if test="remark!=null and remark!=''">
+				remark=#{remark},
+			</if>
+		</set>
+		<where>
+			id=#{id};
+		</where>
+	</update>
+	<!--根据id查找职位 -->
+	<select id="findJobById" parameterType="int" resultType="Job">
+		select * from job_inf where id=#{id};
+	</select>
+	<!-- 查找所有职位 -->
+	<select id="selectAllJob" parameterType="Job" resultMap="selectjob_map" resultType="Job">
+		select j.id,j.name,j.remark,j.create_date,c.* from job_inf j left join
+		(select Job_id,count(id) as job_sum from employee_inf group by Job_id) c on c.job_id=j.id;
+	</select>
+	<!-- 查找职位 -->
+	<select id="selectJob" parameterType="Job" resultMap="selectjob_map" resultType="Job">
+		select j.id,j.name,j.remark,j.create_date,c.* from job_inf j left join
+		(select Job_id,count(id) as job_sum from employee_inf group by Job_id) c on c.job_id=j.id
+	
+			<if test="name!=null and name!=''">
+				where j.name like '%${name}%'
+			</if>
+
+		<!-- 区域查询 -->
+		<if test="startRowNum>=0">
+			limit #{startRowNum},#{pageSize};
+		</if>
+	</select>
+	<resultMap type="Job" id="selectjob_map">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+		<!--一对多的实现 collection association -->
+		<result property="jobSum" column="job_sum"/>
+	</resultMap>
+	<!-- 查找职位总记录 -->
+	<select id="selectJobCount" parameterType="Job" resultType="int">
+		select count(*) from job_inf j left join
+		(select Job_id,count(id) as job_sum from employee_inf group by Job_id) c on c.job_id=j.id
+		<if test="name!=null and name!=''">
+				where j.name like '%${name}%'
+		</if>
+	</select>
+	<!-- 判断职位名称是否重复 -->
+	<select id="findJobName" parameterType="Job" resultType="Job">
+		select * from job_inf where name=#{name};
+	</select>
+</mapper>

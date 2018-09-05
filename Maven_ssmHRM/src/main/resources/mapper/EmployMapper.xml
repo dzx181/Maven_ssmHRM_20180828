@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzx.dao.EmployDao">
+
+	<!-- 删除员工 -->
+	<delete id="deleteEmploy" parameterType="int">
+		delete from employee_inf where id=#{id};
+	</delete>
+	<!-- 添加员工 -->
+	<insert id="addEmploy" parameterType="Employ">
+		insert into
+		employee_inf (
+		id,dept_id,job_id,salary,name,card_id,address,tel,QQ_num,email,party,
+		birthday,race,education,speciality,hobby,remark,sex,phone,create_date)
+		values(
+		#{id},#{dept.id},#{job.id},#{salary},#{name},#{card_id},
+		#{address},#{tel},#{QQ_num},#{email},#{party},#{birthday},
+		#{race},#{education},#{speciality},#{hobby},#{remark},#{sex},
+		#{phone},now());
+	</insert>
+	<!--更改员工 -->
+	<update id="updateEmploy" parameterType="Employ">
+		update employee_inf
+		<set>
+			<if test="dept_id!=null">
+				dept_id=#{dept.id},
+			</if>
+			<if test="job_id!=null">
+				job_id=#{job.id},
+			</if>
+			<if test="salary!=null">
+				salary=#{salary},
+			</if>
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="card_id!=null">
+				card_id=#{card_id},
+			</if>
+			<if test="address!=null">
+				address=#{address},
+			</if>
+			<if test="QQ_num!=null">
+				QQ_num=#{QQ_num},
+			</if>
+			<if test="email!=null">
+				email=#{email},
+			</if>
+			<if test="party!=null">
+				party=#{party},
+			</if>
+			<if test="birthday!=null">
+				birthday=#{birthday},
+			</if>
+			<if test="race!=null">
+				race=#{race},
+			</if>
+			<if test="education!=null">
+				education=#{education},
+			</if>
+			<if test="speciality!=null">
+				speciality=#{speciality},
+			</if>
+			<if test="hobby!=null">
+				hobby=#{hobby},
+			</if>
+			<if test="remark!=null">
+				remark=#{remark},
+			</if>
+			<if test="sex!=null">
+				sex=#{sex},
+			</if>
+			<if test="phone!=null">
+				phone=#{phone},
+			</if>
+			<if test="create_date!=null">
+				create_date=#{create_date},
+			</if>
+		</set>
+		<where>
+			id=#{id};
+		</where>
+	</update>
+	<!--根据id查找员工 -->
+	<select id="findEmployById" parameterType="int" resultType="Employ"
+		resultMap="employ_map">
+		select * from employee_inf where id=#{id};
+	</select>
+	<!-- 查询所有员工 -->
+	<select id="selectAllEmploy" resultMap="employ_map"
+		parameterType="Employ">
+		select t.* from( select e.*,j.NAME as job_name from (
+		select e.*,d.NAME as dept_name from employee_inf e
+		left join dept_inf d
+		on e.DEPT_ID=d.ID ) e left join job_inf j on
+		e.JOB_ID=j.ID ) t
+	</select>
+	<!-- 查询员工 -->
+	<select id="selectEmploy" resultMap="employ_map" parameterType="Employ">
+		select t.* from( select e.*,j.NAME as job_name from (
+		select e.*,d.NAME
+		as dept_name from employee_inf e
+		left join dept_inf d on e.DEPT_ID=d.ID
+		) e left join job_inf j on
+		e.JOB_ID=j.ID ) t
+		<where>
+			<if test="job_id!=null and job_id!=0">
+				and job_id=#{job.id}
+			</if>
+			<if test="dept_id!=null and dept_id!=0">
+				and dept_id=#{dept.id}
+			</if>
+			<if test="name!=null and name!=''">
+				and name like '%${name}%'
+			</if>
+			<if test="card_id!=null and card_id!=''">
+				and card_id=#{card_id}
+			</if>
+			<if test="phone!=null and phone!=''">
+				and phone=#{phone}
+			</if>
+			<if test="sex!=null and sex!=-1">
+				and sex=#{sex}
+			</if>
+		</where>
+		<!-- 排序查询 true为升序（默认）false为降序 -->
+		<if test="isOrder!=null and isOrder!=false">
+			order by salary
+		</if>
+		<if test="isOrder!=null and isOrder!=true">
+			order by salary desc
+		</if>
+		<!-- 区域查询 -->
+		<if test="startRowNum>=0">
+			limit #{startRowNum},#{pageSize};
+		</if>
+	</select>
+	<!-- 查找总记录 -->
+	<select id="selectEmployCount" parameterType="Employ"
+		resultType="int">
+		select count(*) from (select e.*,j.NAME as job_name from (select
+		e.*,d.NAME as dept_name from employee_inf e left join dept_inf d on
+		e.DEPT_ID=d.ID ) e left join job_inf j on e.JOB_ID=j.ID ) t
+		<where>
+			<if test="job_id!=null and job_id!=0">
+				and job_id=#{job.id}
+			</if>
+			<if test="dept_id!=null and dept_id!=0">
+				and dept_id=#{dept.id}
+			</if>
+			<if test="name!=null and name!=''">
+				and name like '%${name}%'
+			</if>
+			<if test="card_id!=null and card_id!=''">
+				and card_id=#{card_id}
+			</if>
+			<if test="phone!=null and phone!=''">
+				and phone=#{phone}
+			</if>
+			<if test="sex!=null and sex!=-1">
+				and sex=#{sex}
+			</if>
+		</where>
+	</select>
+	<!-- 判断身份证是否重复 -->
+	<select id="findCardId" parameterType="Employ" resultType="Employ">
+		select * from employee_inf where card_id=#{card_id};
+	</select>
+
+	<resultMap id="employ_map" type="Employ">
+		<id property="id" column="id" />
+		<result property="salary" column="salary" />
+		<result property="name" column="name" />
+		<result property="card_id" column="card_id" />
+		<result property="address" column="address" />
+		<result property="tel" column="tel" />
+		<result property="QQ_num" column="QQ_num" />
+		<result property="email" column="email" />
+		<result property="party" column="party" />
+		<result property="birthday" column="birthday" />
+		<result property="race" column="race" />
+		<result property="education" column="education" />
+		<result property="speciality" column="speciality" />
+		<result property="hobby" column="hobby" />
+		<result property="remark" column="remark" />
+		<result property="sex" column="sex" />
+		<result property="phone" column="phone" />
+		<result property="create_date" column="create_date" />
+		<!-- 部门对象映射 -->
+		<association property="dept" column="dept_id" javaType="Dept">
+			<id property="id" column="dept_id" />
+			<result property="name" column="dept_name" />
+		</association>
+		<!-- 职位对象映射 -->
+		<association property="job" column="job_id" javaType="Job">
+			<id property="id" column="job_id" />
+			<result property="name" column="job_name" />
+		</association>
+	</resultMap>
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzx.dao.UserDao">
+		
+	<!--添加用户 -->
+	<insert id="addUser" parameterType="User">
+		insert into
+		user_inf(username,loginname,password,status,createdate)
+		values(#{username},#{loginname},#{password},#{status},now());
+	</insert>
+	<!-- 删除用户 -->
+	<delete id="deleteUser" parameterType="int">
+		delete from user_inf where
+		id=#{id};
+	</delete>
+	<!-- 更改用户 -->
+	<update id="updateUser" parameterType="User">
+		update user_inf
+		<set>
+			<if test="username!=null">
+				username=#{username},
+			</if>
+			<if test="loginname!=null">
+				loginname=#{loginname},
+			</if>
+			<if test="password!=null">
+				password=#{password},
+			</if>
+			<if test="status!=null">
+				status=#{status},
+			</if>
+		</set>
+		<where>
+			id=#{id};
+		</where>
+	</update>
+	<!--查找所有用户  -->
+	<select id="selectAllUser" parameterType="User" resultType="User">
+		select * from user_inf;
+	</select>
+	<!--根据id查找用户 -->
+	<select id="findUserById" parameterType="int" resultType="User">
+		select * from user_inf where id=#{id};
+	</select>
+	<!--查找用户 -->
+	<select id="selectUser" parameterType="User" resultType="User">
+		select * from user_inf
+		<where>
+			<if test="username!=null and username!=''">
+				and username like '%${username}%'
+			</if>
+			<if test="status!=null and status!=''">
+				and status=#{status}
+			</if>
+		
+		</where>
+			<!-- 区域查询 -->
+		<if test="startRowNum>=0">
+			limit #{startRowNum},#{pageSize}
+		</if>
+	</select>
+	<!--查找总记录 -->
+	<select id="selectUserCount" parameterType="User" resultType="int">
+		select count(*) from user_inf
+		<where>
+			<if test="username!=null and username!=''">
+				and username like '%${username}%'
+			</if>
+			<if test="status!=null and status!=''">
+				and status=#{status}
+			</if>
+		</where>
+	</select>
+	<!-- 判断登录名是否重复 -->
+	<select id="findLoginname" parameterType="User" resultType="User">
+		select * from user_inf where loginname=#{loginname};
+	</select>
+	<!--登录验证 -->
+	<select id="findUserByLogin" parameterType="User" resultType="User">
+		select * from user_inf where loginname=#{loginname} and
+		password=#{password};
+	</select>
+</mapper>
